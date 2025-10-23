@@ -1,0 +1,207 @@
+"use client";
+
+import BtnSelecionaFoto from "@/components/BtnSelecionaFoto";
+import CustomInput from "@/components/CustomInput";
+import DatePickerBR from "@/components/DatePickerBR";
+import Navbar from "@/components/Navbar";
+import Image from "next/image";
+import { useState } from "react";
+import { FaArrowLeft, FaArrowRight } from "react-icons/fa";
+
+type LinhaProgressoProps = {
+  step: number;
+};
+
+type BtnPaginacaoProps = {
+  text: string;
+  onClick?: () => void;
+};
+
+const LinhaProgresso = ({ step }: LinhaProgressoProps) => {
+  const steps = [
+    "Tela inicial",
+    "Saudação",
+    "Cadastro",
+    "Confirmação",
+    "Login",
+  ];
+
+  return (
+    <div className="flex relative flex-col justify-center items w-full h-28 px-12 gap-2 bg-[#4c4c4c] rounded-md text-white flex-shrink-0">
+      <Image
+        src="/images/logo-com-contorno.png"
+        alt="Criança"
+        width={48}
+        height={48}
+        className="absolute right-0 top-0"
+      />
+
+      <div className="flex items-center justify-between relative w-4/5 mx-auto">
+        {/* Linha de fundo */}
+        <div className="absolute top-1/4 left-0 right-0 h-0.5 bg-gray-500 -translate-y-1/2"></div>
+
+        {/* Etapas */}
+        {steps.map((item, index) => (
+          <div key={item} className="flex flex-col items-center relative z-10">
+            {/* Bolinha */}
+            <div
+              className={`w-2.5 h-2.5 rounded-full absolute top-1/4 -translate-y-1/2 ${
+                index <= step ? "bg-white" : "bg-gray-400"
+              }`}
+            ></div>
+
+            {/* Texto */}
+            <span
+              className={`mt-6 text-md ${
+                index === step ? "text-white font-semibold" : "text-gray-300"
+              }`}
+            >
+              {item}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+const BtnPaginacao = ({ text, onClick }: BtnPaginacaoProps) => {
+  return (
+    <button
+      className="flex flex-col items-center gap-4 hover:cursor-pointer"
+      onClick={onClick}
+    >
+      <div className="flex items-center justify-center p-4 rounded-full bg-[rgba(255,255,255,0.3)]">
+        {text == "Retornar" || text == "Cadastrar Novamente" ? (
+          <FaArrowLeft size={18} />
+        ) : (
+          <FaArrowRight size={18} />
+        )}
+      </div>
+      <span>{text}</span>
+    </button>
+  );
+};
+
+const BemVindo = () => {
+  return (
+    <div className="flex flex-col items-center justify-center w-[50%] h-full gap-8">
+      <div className="flex flex-col items-center gap-1">
+        <span className="text-2xl">Bem vindo (a) ao</span>
+        <span className="text-3xl font-bold">LEARNY</span>
+      </div>
+      <Image
+        src="/images/logo-grande.png"
+        alt="Logo"
+        width={150}
+        height={150}
+      />
+      <span className="text-center">
+        Facilitando o processo de aprendizagem para crianças <br />
+        diagnosticadas com transtorno do espectro autista
+      </span>
+    </div>
+  );
+};
+
+const FormCadastro = () => {
+  return (
+    <div className="flex flex-col items-center justify-center w-[50%] h-full">
+      <BtnSelecionaFoto />
+      <div className="flex flex-col w-4/5 gap-3">
+        <CustomInput label="Usuário" value="" transparent />
+        <CustomInput label="Senha" value="" transparent />
+        <CustomInput label="Email" value="" transparent />
+        <CustomInput label="Nome" value="" transparent />
+        <div className="flex items-center justify-between px-2 pr-8 py-2 w-full h-16 bg-[rgba(255,255,255,0.3)] rounded-md">
+          <DatePickerBR />
+          <Image
+            src="/icons/calendario.png"
+            alt="Calendar Icon"
+            width={32}
+            height={32}
+          />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const Confirmacao = () => {
+  return (
+    <div className="flex flex-col items-center justify-center w-[50%] h-full gap-8">
+      <div className="flex flex-col items-center gap-1">
+        <span className="text-2xl">Cadastro concluido com sucesso</span>
+      </div>
+      <Image src="/images/elefante.png" alt="Logo" width={150} height={150} />
+    </div>
+  );
+};
+
+const LoadingComponent = () => {
+  return (
+    <div className="flex flex-col items-center justify-center w-[50%] h-full">
+      <Image
+        src="/gifs/loading.gif"
+        alt="Loading"
+        width={250}
+        height={250}
+        unoptimized // muito importante para GIFs animados
+      />
+    </div>
+  );
+};
+
+export default function Cadastro() {
+  const [loading, setLoading] = useState(false);
+  const [step, setStep] = useState(1);
+
+  const stepsComponents: any = {
+    1: <BemVindo />,
+    2: <FormCadastro />,
+    3: <Confirmacao />,
+  };
+
+  return (
+    <div className="flex h-screen overflow-hidden">
+      <Navbar />
+
+      <main className="flex-1 flex flex-col bg-white text-zinc-800">
+        <div className="flex flex-col flex-1 py-6 px-14 gap-4 overflow-hidden">
+          {/* Linha de progreso do cadastro */}
+          <LinhaProgresso step={step} />
+
+          {/* Cadastro */}
+          <div className="flex-1 flex bg-[url('/images/fundo-gradiente-login.png')] justify-between items-center p-8 gap-2 rounded-md text-white overflow-hidden">
+            <div className="flex flex-col items-center justify-center px-30 pt-18 gap-2 w-[25%] h-full rounded-md p-8">
+              {step > 1 && (
+                <BtnPaginacao
+                  text={`${step == 3 ? "Cadastrar Novamente" : "Retornar"}`}
+                  onClick={() => setStep(step - 1)}
+                />
+              )}
+            </div>
+
+            {loading ? (
+              <LoadingComponent />
+            ) : (
+              stepsComponents[step] || <BemVindo />
+            )}
+
+            <div className="flex flex-col items-center justify-center px-30 pt-18 gap-2 w-[25%] h-full rounded-md p-8">
+              <BtnPaginacao
+                text={`${
+                  step == 3 ? "Login" : step == 2 ? "Confirmar" : "Avançar"
+                }`}
+                onClick={() => {
+                  if (step < 3) setStep(step + 1);
+                  if (step == 3) window.location.href = "/";
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+}
