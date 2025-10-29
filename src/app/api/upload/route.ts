@@ -1,6 +1,14 @@
 import { NextResponse } from "next/server";
-import fs from "fs";
-import path from "path";
+import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import { v4 as uuidv4 } from "uuid";
+
+const s3 = new S3Client({
+  region: process.env.AWS_S3_REGION!,
+  credentials: {
+    accessKeyId: process.env.AWS_S3_ACCESS_KEY_ID!,
+    secretAccessKey: process.env.AWS_S3_SECRET_ACCESS_KEY!,
+  },
+});
 
 export async function POST(req: Request) {
   try {
@@ -14,23 +22,23 @@ export async function POST(req: Request) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    // Define o diretório de destino
-    const uploadDir = path.join(process.cwd(), "public/images/fotos");
-    fs.mkdirSync(uploadDir, { recursive: true });
+    const fileExtension = file.name.split(".").pop();
+    const fileName = `${uuidv4()}.${fileExtension}`;
 
-    // Gera um nome único
-    const fileName = `${Date.now()}-${file.name}`;
-    const filePath = path.join(uploadDir, fileName);
+    await s3.send(
+      new PutObjectCommand({
+        Bucket: process.env.AWS_S3_BUCKET!,
+        Key: fileName,
+        Body: buffer,
+        ContentType: file.type,
+      })
+    );
 
-    // Salva o arquivo no diretório público
-    fs.writeFileSync(filePath, buffer);
+    const publicUrl = `${process.env.AWS_S3_BASE_URL}/${fileName}`;
 
-    // Caminho acessível via browser
-    const imageUrl = `/images/fotos/${fileName}`;
-
-    return NextResponse.json({ url: imageUrl });
+    return NextResponse.json({ url: publicUrl }, { status: 200 });
   } catch (error) {
-    console.error("Erro no upload:", error);
+    console.error("Erro no upload S3:", error);
     return NextResponse.json({ error: "Erro ao fazer upload" }, { status: 500 });
   }
 }
