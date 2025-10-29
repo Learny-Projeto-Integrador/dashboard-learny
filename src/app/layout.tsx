@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Montserrat } from "next/font/google";
 import "./globals.css";
+import { UserProvider } from "@/contexts/UserContext";
+import { AlertProvider } from "@/contexts/AlertContext";
+import { ChildProvider } from "@/contexts/ChildContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -35,7 +38,13 @@ export default function RootLayout({
       <body
         className={`${montserrat.className} antialiased`}
       >
-        {children}
+        <AlertProvider>
+          <UserProvider>
+            <ChildProvider>
+              {children}
+            </ChildProvider>
+          </UserProvider>
+        </AlertProvider>
       </body>
     </html>
   );

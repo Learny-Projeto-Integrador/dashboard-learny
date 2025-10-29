@@ -1,11 +1,15 @@
 import { useState } from "react";
 
-export default function GradientSwitch() {
-  const [enabled, setEnabled] = useState(false);
+type Props = {
+  enabled?: boolean;
+  onClick?: () => void;
+}
+
+export default function GradientSwitch({enabled, onClick}: Props) {
 
   return (
     <button
-      onClick={() => setEnabled(!enabled)}
+      onClick={onClick}
       className={`
         w-13 h-7 rounded-full p-1 transition-all duration-300
         flex items-center

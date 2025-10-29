@@ -1,8 +1,11 @@
 "use client";
 
 import BarraXP from "@/components/BarraXP";
+import CustomAlert from "@/components/CustomAlert";
 import Navbar from "@/components/Navbar";
+import { useChild } from "@/contexts/ChildContext";
 import Image from "next/image";
+import { useEffect, useState } from "react";
 import {
   BarChart,
   Bar,
@@ -37,7 +40,7 @@ const COLORS = ["#F87171", "#60A5FA", "#34D399", "#FBBF24", "#FDE68A"];
 type DashboardItemProps = {
   width: string;
   text: string;
-  number: string;
+  number: number;
   icon: string;
   color: string;
   type?: string;
@@ -167,6 +170,21 @@ const Medalha = ({ color, text }: MedalhaProps) => {
 };
 
 export default function Dashboard() {
+  const { child, setChild } = useChild();
+  const [nomeCrianca, setNomeCrianca] = useState("");
+  const [pontos, setPontos] = useState(0);
+  const [fasesConcluidas, setFasesConcluidas] = useState(0);
+  const [medalhas, setMedalhas] = useState([]);
+
+  useEffect(() => {
+    if (child) {
+      setNomeCrianca(child.nome);
+      setPontos(child.pontos);
+      setFasesConcluidas(child.fasesConcluidas);
+      setMedalhas(child.medalhas)
+    }
+  }, [child])
+
   return (
     <div className="flex h-screen overflow-hidden">
       <Navbar />
@@ -186,7 +204,7 @@ export default function Dashboard() {
           <div className="flex relative flex-col w-1/3 mb-4 gap-1 h-20 rounded-md text-[#4c4c4c] flex-shrink-0">
               <span className="text-sm">Dashboard de:</span>
               <span className="font-bold text-xl">
-                Luiza Clara de Oliveira Pereira
+                {nomeCrianca}
               </span>
               <BarraXP />
           </div>
@@ -196,30 +214,28 @@ export default function Dashboard() {
             <DashboardItem
               width={"36%"}
               text="Atividades vistas (dia)"
-              number="27"
+              number={pontos}
               icon="atividade.png"
               color="#EF5B6A"
             />
             <DashboardItem
               width={"20%"}
               text="Streak Diário"
-              number="5"
+              number={fasesConcluidas}
               icon="calendario-azul.png"
               color="#6CD2FF"
             />
             <DashboardItem
               width={"20%"}
               text="Conquistas"
-              number="5"
+              number={5}
               icon="trofeu.png"
-              color="#fff"
-              bgColor="#80D25B"
-              type="inner"
+              color="#80D25B"
             />
             <DashboardItem
               width={"18%"}
               text="Medalhas"
-              number="5"
+              number={medalhas?.length || 0}
               icon="teste.png"
               color="#FFCC4D"
             />

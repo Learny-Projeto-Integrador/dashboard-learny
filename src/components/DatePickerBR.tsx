@@ -4,7 +4,7 @@ import Button from '@mui/material/Button';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DatePicker, DatePickerProps } from '@mui/x-date-pickers/DatePicker';
-import dayjs from 'dayjs';
+import dayjs, { Dayjs } from 'dayjs';
 import 'dayjs/locale/pt-br';
 import { useValidation, validateDate } from '@mui/x-date-pickers/validation';
 import {
@@ -13,6 +13,11 @@ import {
   usePickerContext,
 } from '@mui/x-date-pickers/hooks';
 import useForkRef from '@mui/utils/useForkRef';
+
+type Props = {
+  value: Dayjs | null;
+  onChange: (newValue: Dayjs | null) => void;
+};
 
 function ButtonDateField(props: any) {
   // Remove props que não são válidas no DOM
@@ -76,9 +81,7 @@ function ButtonFieldDatePicker(props: DatePickerProps<any>) {
   );
 }
 
-export default function DatePickerBR() {
-  const [value, setValue] = React.useState(dayjs());
-
+export default function DatePickerBR({ value, onChange }: Props) {
   return (
     <LocalizationProvider
       dateAdapter={AdapterDayjs}
@@ -88,10 +91,7 @@ export default function DatePickerBR() {
         okButtonLabel: 'OK',
       }}
     >
-      <ButtonFieldDatePicker
-        value={value}
-        onChange={(newValue: any) => setValue(newValue)}
-      />
+      <ButtonFieldDatePicker value={value} onChange={onChange} />
     </LocalizationProvider>
   );
 }

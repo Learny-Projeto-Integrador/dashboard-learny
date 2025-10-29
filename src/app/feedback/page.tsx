@@ -1,38 +1,9 @@
 "use client";
 
-import BarraXP from "@/components/BarraXP";
 import Navbar from "@/components/Navbar";
+import { useChild } from "@/contexts/ChildContext";
 import Image from "next/image";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-} from "recharts";
-
-const barData = [
-  { name: "Seg", value: 20 },
-  { name: "Ter", value: 35 },
-  { name: "Qua", value: 50 },
-  { name: "Qui", value: 60 },
-];
-
-const pieData = [
-  { name: "Segunda", value: 25 },
-  { name: "Terça", value: 20 },
-  { name: "Quarta", value: 15 },
-  { name: "Quinta", value: 25 },
-  { name: "Sexta", value: 15 },
-];
-
-const COLORS = ["#F87171", "#60A5FA", "#34D399", "#FBBF24", "#FDE68A"];
+import { useEffect, useState } from "react";
 
 type ScoreComponentProps = {
   color: string;
@@ -106,6 +77,15 @@ const FeedbackComponent = () => {
 }
 
 export default function Feedback() {
+  const { child, setChild } = useChild();
+  const [nomeCrianca, setNomeCrianca] = useState("");
+
+  useEffect(() => {
+    if (child) {
+      setNomeCrianca(child.nome);
+    }
+  }, [child])
+
   return (
     <div className="flex h-screen overflow-hidden">
       <Navbar />
@@ -125,7 +105,7 @@ export default function Feedback() {
           <div className="flex relative flex-col mb-2 w-1/3 gap-1 rounded-md text-[#4c4c4c] flex-shrink-0">
             <span className="text-sm">Dashboard de:</span>
             <span className="font-bold text-xl">
-              Luiza Clara de Oliveira Pereira
+              {nomeCrianca}
             </span>
           </div>
 

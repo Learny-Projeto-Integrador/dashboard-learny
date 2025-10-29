@@ -4,7 +4,12 @@ import BtnSelecionaFoto from "@/components/BtnSelecionaFoto";
 import CustomInput from "@/components/CustomInput";
 import DatePickerBR from "@/components/DatePickerBR";
 import Navbar from "@/components/Navbar";
+import NavbarLogin from "@/components/NavbarLogin";
+import { useCustomAlert } from "@/contexts/AlertContext";
+import dayjs, { Dayjs } from "dayjs";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { FaArrowLeft, FaArrowRight } from "react-icons/fa";
 
@@ -83,61 +88,6 @@ const BtnPaginacao = ({ text, onClick }: BtnPaginacaoProps) => {
   );
 };
 
-const BemVindo = () => {
-  return (
-    <div className="flex flex-col items-center justify-center w-[50%] h-full gap-8">
-      <div className="flex flex-col items-center gap-1">
-        <span className="text-2xl">Bem vindo (a) ao</span>
-        <span className="text-3xl font-bold">LEARNY</span>
-      </div>
-      <Image
-        src="/images/logo-grande.png"
-        alt="Logo"
-        width={150}
-        height={150}
-      />
-      <span className="text-center">
-        Facilitando o processo de aprendizagem para crianças <br />
-        diagnosticadas com transtorno do espectro autista
-      </span>
-    </div>
-  );
-};
-
-const FormCadastro = () => {
-  return (
-    <div className="flex flex-col items-center justify-center w-[50%] h-full">
-      <BtnSelecionaFoto />
-      <div className="flex flex-col w-4/5 gap-3">
-        <CustomInput label="Usuário" value="" transparent />
-        <CustomInput label="Senha" value="" transparent />
-        <CustomInput label="Email" value="" transparent />
-        <CustomInput label="Nome" value="" transparent />
-        <div className="flex items-center justify-between px-2 pr-8 py-2 w-full h-16 bg-[rgba(255,255,255,0.3)] rounded-md">
-          <DatePickerBR />
-          <Image
-            src="/icons/calendario.png"
-            alt="Calendar Icon"
-            width={32}
-            height={32}
-          />
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const Confirmacao = () => {
-  return (
-    <div className="flex flex-col items-center justify-center w-[50%] h-full gap-8">
-      <div className="flex flex-col items-center gap-1">
-        <span className="text-2xl">Cadastro concluido com sucesso</span>
-      </div>
-      <Image src="/images/elefante.png" alt="Logo" width={150} height={150} />
-    </div>
-  );
-};
-
 const LoadingComponent = () => {
   return (
     <div className="flex flex-col items-center justify-center w-[50%] h-full">
@@ -153,19 +103,136 @@ const LoadingComponent = () => {
 };
 
 export default function Cadastro() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { showAlert } = useCustomAlert();
+  const tipo = searchParams.get("tipo");
+  const [foto, setFoto] = useState("");
+  const [usuario, setUsuario] = useState("");
+  const [senha, setSenha] = useState("");
+  const [email, setEmail] = useState("");
+  const [nome, setNome] = useState("");
+  const [dataNasc, setDataNasc] = useState<Dayjs | null>(dayjs());;
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(1);
 
+  const handleCadastro = async () => {
+    if (!usuario || !senha) {
+      showAlert({
+        icon:"/icons/erro.png",
+        title: "Erro ao fazer cadastro!",
+        message: "Por favor, preencha todos os campos obrigatórios.",
+      })
+      return;
+    }
+
+    setLoading(true);
+
+    const rotaCadastro = tipo === "pais" ? "/api/pais" : "/api/criancas";
+
+    const body: any = {
+      foto: foto.trim(),
+      usuario: usuario.trim(),
+      senha: senha.trim(),
+      nome: nome.trim(),
+      dataNasc,
+    };
+
+    if (tipo === "pais") {
+      body.email = email.trim();
+    }
+
+    try {
+      const res = await fetch(rotaCadastro, {
+        method: "POST",
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        showAlert({
+          icon: "/icons/sucesso.png",
+          title: "Usuário cadastrado com sucesso!",
+          message: "Cadastro realizado com sucesso. Faça o login usufrua do aplicativo!",
+        })
+      } else {
+        showAlert({
+          icon: "/icons/erro.png",
+          title: "Erro ao cadastrar usuário!",
+          message: data.error || "Ocorreu um erro ao cadastrar o usuário. Verifique se os dados estão preenchidos corretamente",
+        })
+      }
+    } catch (error) {
+      console.error(error);
+      showAlert({
+          icon: "/icons/erro.png",
+          title: "Erro ao cadastrar usuário!",
+          message: "Ocorreu um erro interno no servidor",
+        })
+    } finally {
+      setLoading(false);
+    }
+  }
+
   const stepsComponents: any = {
-    1: <BemVindo />,
-    2: <FormCadastro />,
-    3: <Confirmacao />,
+    1: (
+      <div className="flex flex-col items-center justify-center w-[50%] h-full gap-8">
+        <div className="flex flex-col items-center gap-1">
+          <span className="text-2xl">Bem vindo (a) ao</span>
+          <span className="text-3xl font-bold">LEARNY</span>
+        </div>
+        <Image
+          src="/images/logo-grande.png"
+          alt="Logo"
+          width={150}
+          height={150}
+        />
+        <span className="text-center">
+          Facilitando o processo de aprendizagem para crianças <br />
+          diagnosticadas com transtorno do espectro autista
+        </span>
+      </div>
+    ),
+    2: (
+      <div className="flex flex-col items-center justify-center w-[50%] h-full">
+        <BtnSelecionaFoto
+            type="add"
+            image={foto}
+            onChange={(novaImagem: any) => setFoto(novaImagem)}
+          />
+        <div className="flex flex-col w-4/5 gap-3">
+          <CustomInput label="Usuário" value={usuario} onChange={(e) => setUsuario(e.target.value)} transparent />
+          <CustomInput label="Senha" value={senha} onChange={(e) => setSenha(e.target.value)} isPassword transparent />
+          <CustomInput label="Email" value={email} onChange={(e) => setEmail(e.target.value)} transparent />
+          <CustomInput label="Nome" value={nome} onChange={(e) => setNome(e.target.value)} transparent />
+          <div className="flex items-center justify-between px-2 pr-8 py-2 w-full h-16 bg-[rgba(255,255,255,0.3)] rounded-md">
+            <DatePickerBR value={dataNasc} onChange={(novaData) => setDataNasc(novaData)} />
+            <Image
+              src="/icons/calendario.png"
+              alt="Calendar Icon"
+              width={32}
+              height={32}
+            />
+          </div>
+        </div>
+      </div>
+    ),
+    3: (
+      <div className="flex flex-col items-center justify-center w-[50%] h-full gap-8">
+        <div className="flex flex-col items-center gap-1">
+          <span className="text-2xl">Cadastro concluido com sucesso</span>
+        </div>
+        <Image src="/images/elefante.png" alt="Logo" width={150} height={150} />
+      </div>
+    ),
   };
 
   return (
     <div className="flex h-screen overflow-hidden">
-      <Navbar />
-
+      {tipo == "pais" ? <NavbarLogin /> : <Navbar />}
+      
       <main className="flex-1 flex flex-col bg-white text-zinc-800">
         <div className="flex flex-col flex-1 py-6 px-14 gap-4 overflow-hidden">
           {/* Linha de progreso do cadastro */}
@@ -182,11 +249,7 @@ export default function Cadastro() {
               )}
             </div>
 
-            {loading ? (
-              <LoadingComponent />
-            ) : (
-              stepsComponents[step] || <BemVindo />
-            )}
+            {loading ? <LoadingComponent /> : stepsComponents[step]}
 
             <div className="flex flex-col items-center justify-center px-30 pt-18 gap-2 w-[25%] h-full rounded-md p-8">
               <BtnPaginacao
@@ -195,7 +258,8 @@ export default function Cadastro() {
                 }`}
                 onClick={() => {
                   if (step < 3) setStep(step + 1);
-                  if (step == 3) window.location.href = "/";
+                  if (step == 2) handleCadastro();
+                  if (step == 3) router.push("/");
                 }}
               />
             </div>
