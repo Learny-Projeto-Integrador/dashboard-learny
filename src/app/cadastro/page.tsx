@@ -254,7 +254,7 @@ export default function Cadastro() {
             <div className="flex flex-col items-center justify-center px-30 pt-18 gap-2 w-[25%] h-full rounded-md p-8">
               <BtnPaginacao
                 text={`${
-                  step == 3 ? "Login" : step == 2 ? "Confirmar" : "Avançar"
+                  step == 3 && tipo == "pais" ? "Login" : step == 3 && tipo != "pais" ? "Finalizar" : step == 2 ? "Confirmar" : "Avançar"
                 }`}
                 onClick={() => {
                   if (step < 3) setStep(step + 1);

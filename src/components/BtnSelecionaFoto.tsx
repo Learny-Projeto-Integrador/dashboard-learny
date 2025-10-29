@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import Image from "next/image";
 
 type Props = {
@@ -9,7 +9,22 @@ type Props = {
   onChange?: (newImage: string | null) => void;
 };
 
+const LoadingComponent = () => {
+  return (
+    <div className="flex flex-col items-center justify-center">
+      <Image
+        src="/gifs/loading.gif"
+        alt="Loading"
+        width={200}
+        height={200}
+        unoptimized // muito importante para GIFs animados
+      />
+    </div>
+  );
+};
+
 export default function BtnSelecionaFoto({ type = "add", image, onChange }: Props) {
+  const [loading, setLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleClick = () => {
@@ -23,6 +38,8 @@ export default function BtnSelecionaFoto({ type = "add", image, onChange }: Prop
     const formData = new FormData();
     formData.append("file", file);
 
+    setLoading(true);
+
     try {
       const res = await fetch("/api/upload", {
         method: "POST",
@@ -35,12 +52,16 @@ export default function BtnSelecionaFoto({ type = "add", image, onChange }: Prop
       if (onChange) onChange(data.url);
     } catch (err) {
       console.error("Erro no upload:", err);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div className="relative">
-      {type === "edit" ? (
+    { loading ? 
+      <LoadingComponent /> : 
+      type === "edit" ? (
         <button
           onClick={handleClick}
           className="w-40 h-40 flex items-end justify-end pr-2 pb-2 bg-cover bg-center bg-no-repeat rounded-lg hover:cursor-pointer"
@@ -52,12 +73,9 @@ export default function BtnSelecionaFoto({ type = "add", image, onChange }: Prop
         </button>
       ) : (
         <button onClick={handleClick} className="hover:cursor-pointer">
-          <Image
-            src={image || "/images/camera.png"}
-            alt="Foto"
-            width={120}
-            height={120}
-            className="mb-4 rounded-lg"
+          <div
+            className="w-28 h-28 mb-4 rounded-lg bg-cover bg-center bg-no-repeat"
+            style={{ backgroundImage: `url(${image || "/images/camera.png"})` }}
           />
         </button>
       )}
