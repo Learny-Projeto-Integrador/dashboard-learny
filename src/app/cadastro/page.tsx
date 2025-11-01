@@ -6,11 +6,13 @@ import DatePickerBR from "@/components/DatePickerBR";
 import Navbar from "@/components/Navbar";
 import NavbarLogin from "@/components/NavbarLogin";
 import { useCustomAlert } from "@/contexts/AlertContext";
+import { useChild } from "@/contexts/ChildContext";
+import { useApi } from "@/hooks/useApi";
 import dayjs, { Dayjs } from "dayjs";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { JSX, useState } from "react";
 import { FaArrowLeft, FaArrowRight } from "react-icons/fa";
 
 type LinhaProgressoProps = {
@@ -20,6 +22,15 @@ type LinhaProgressoProps = {
 type BtnPaginacaoProps = {
   text: string;
   onClick?: () => void;
+};
+
+type BodyType = {
+  foto?: string;
+  usuario: string;
+  senha: string;
+  nome: string;
+  dataNasc: Dayjs | null;
+  email?: string;
 };
 
 const LinhaProgresso = ({ step }: LinhaProgressoProps) => {
@@ -32,7 +43,7 @@ const LinhaProgresso = ({ step }: LinhaProgressoProps) => {
   ];
 
   return (
-    <div className="flex relative flex-col justify-center items w-full h-28 px-12 gap-2 bg-[#4c4c4c] rounded-md text-white flex-shrink-0">
+    <div className="flex relative flex-col justify-center items w-full h-28 px-12 gap-2 bg-[#4c4c4c] rounded-md text-white shrink-0">
       <Image
         src="/images/logo-com-contorno.png"
         alt="Criança"
@@ -105,15 +116,16 @@ const LoadingComponent = () => {
 export default function Cadastro() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { loading, request } = useApi();
   const { showAlert } = useCustomAlert();
+  const { setChild } = useChild();
   const tipo = searchParams.get("tipo");
-  const [foto, setFoto] = useState("");
+  const [foto, setFoto] = useState<string | null>("");
   const [usuario, setUsuario] = useState("");
   const [senha, setSenha] = useState("");
   const [email, setEmail] = useState("");
   const [nome, setNome] = useState("");
   const [dataNasc, setDataNasc] = useState<Dayjs | null>(dayjs());;
-  const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(1);
 
   const handleCadastro = async () => {
@@ -126,12 +138,10 @@ export default function Cadastro() {
       return;
     }
 
-    setLoading(true);
-
     const rotaCadastro = tipo === "pais" ? "/api/pais" : "/api/criancas";
 
-    const body: any = {
-      foto: foto.trim(),
+    const body: BodyType = {
+      foto: foto?.trim(),
       usuario: usuario.trim(),
       senha: senha.trim(),
       nome: nome.trim(),
@@ -142,41 +152,38 @@ export default function Cadastro() {
       body.email = email.trim();
     }
 
-    try {
-      const res = await fetch(rotaCadastro, {
-        method: "POST",
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      });
+    const result = await request({
+      endpoint: rotaCadastro,
+      method: "POST",
+      body: body,
+    })
 
-      const data = await res.json();
-
-      if (res.ok) {
-        showAlert({
+    if (result && !result.error) {
+      if (rotaCadastro == "/api/criancas") {
+        setChild({
+          foto: result.foto,
+          usuario: result.usuario,
+          nome: result.nome,
+          pontos: result.pontos,
+          fasesConcluidas: result.fasesConcluidas,
+          medalhas: result.medalhas,
+        });
+      }
+      showAlert({
           icon: "/icons/sucesso.png",
           title: "Usuário cadastrado com sucesso!",
           message: "Cadastro realizado com sucesso. Faça o login usufrua do aplicativo!",
         })
-      } else {
-        showAlert({
-          icon: "/icons/erro.png",
-          title: "Erro ao cadastrar usuário!",
-          message: data.error || "Ocorreu um erro ao cadastrar o usuário. Verifique se os dados estão preenchidos corretamente",
-        })
-      }
-    } catch (error) {
-      console.error(error);
+    } else {
       showAlert({
           icon: "/icons/erro.png",
           title: "Erro ao cadastrar usuário!",
-          message: "Ocorreu um erro interno no servidor",
+          message: result.message || "Ocorreu um erro ao cadastrar o usuário",
         })
-    } finally {
-      setLoading(false);
     }
   }
 
-  const stepsComponents: any = {
+  const stepsComponents: Record<number, JSX.Element> = {
     1: (
       <div className="flex flex-col items-center justify-center w-[50%] h-full gap-8">
         <div className="flex flex-col items-center gap-1">
@@ -200,7 +207,7 @@ export default function Cadastro() {
         <BtnSelecionaFoto
             type="add"
             image={foto}
-            onChange={(novaImagem: any) => setFoto(novaImagem)}
+            onChange={(novaImagem: string | null) => setFoto(novaImagem)}
           />
         <div className="flex flex-col w-4/5 gap-3">
           <CustomInput label="Usuário" value={usuario} onChange={(e) => setUsuario(e.target.value)} transparent />

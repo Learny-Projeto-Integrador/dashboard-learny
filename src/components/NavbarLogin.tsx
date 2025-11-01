@@ -2,6 +2,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export default function NavbarLogin() {
   const router = useRouter();
@@ -35,9 +36,9 @@ export default function NavbarLogin() {
           {isOpen ? (
             <div className={`flex flex-col items-center mb-4`}>
               <button
-                className="w-[80%] bg-gradient-to-br hover:cursor-pointer 
+                className="w-[80%] bg-linear-to-br hover:cursor-pointer 
               from-[#a94f5c] 
-              via-[#519ebf]/100 via-70% 
+              via-[#519ebf] via-70% 
               to-[#519ebf] h-40 mb-8 rounded-lg text-white flex flex-col items-center justify-center"
               onClick={() => router.push("/")}
               >
@@ -54,7 +55,7 @@ export default function NavbarLogin() {
               <span className="text-[#4c4c4c] font-black">Learny</span>
             </div>
           ) : (
-            <a
+            <Link
               href="/"
               className="flex items-center gap-3 p-1 rounded-md transition text-sm"
             >
@@ -69,12 +70,12 @@ export default function NavbarLogin() {
                   }`}
                 />
               }
-            </a>
+            </Link>
           )}
           <div
             className={`flex items-center ${
               isOpen &&
-              "border-1 border-zinc-200 rounded-md p-1 shadow-md hover:cursor-pointer"
+              "border border-zinc-200 rounded-md p-1 shadow-md hover:cursor-pointer"
             }`}
           >
             <a
@@ -98,7 +99,7 @@ export default function NavbarLogin() {
           <div
             className={`flex items-center ${
               isOpen &&
-              "border-1 border-zinc-200 rounded-md p-1 shadow-md hover:cursor-pointer"
+              "border border-zinc-200 rounded-md p-1 shadow-md hover:cursor-pointer"
             }`}
           >
             <a

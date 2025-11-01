@@ -1,6 +1,6 @@
 "use client";
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { useRouter } from "next/navigation";
+import { useUser } from "./UserContext";
 
 type Child = {
   foto: string;
@@ -19,8 +19,8 @@ type ChildContextType = {
 const ChildContext = createContext<ChildContextType | undefined>(undefined);
 
 export function ChildProvider({ children }: { children: ReactNode }) {
-  const router = useRouter();
   const [child, setChild] = useState<Child | null>(null);
+  const { user } = useUser();
 
   // 🔁 Recupera criança salva (ex: após refresh)
   useEffect(() => {
@@ -35,6 +35,12 @@ export function ChildProvider({ children }: { children: ReactNode }) {
     if (child) localStorage.setItem("child", JSON.stringify(child));
     else localStorage.removeItem("child");
   }, [child]);
+
+  useEffect(() => {
+    if (!user) {
+      setChild(null); // limpa automaticamente quando o usuário some
+    }
+  }, [user]);
 
   return (
     <ChildContext.Provider value={{ child, setChild }}>

@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import CustomInput from "@/components/CustomInput";
 import NavbarLogin from "@/components/NavbarLogin";
@@ -6,9 +6,10 @@ import Image from "next/image";
 import { useState } from "react";
 import Cookies from "js-cookie";
 import { useUser } from "@/contexts/UserContext";
-import { useRouter } from 'next/navigation'
+import { useRouter } from "next/navigation";
 import { useCustomAlert } from "@/contexts/AlertContext";
 import { useChild } from "@/contexts/ChildContext";
+import { useApi } from "@/hooks/useApi";
 
 const LoadingComponent = () => {
   return (
@@ -26,106 +27,80 @@ const LoadingComponent = () => {
 
 export default function Home() {
   const router = useRouter();
+  const { loading, request } = useApi();
   const { showAlert } = useCustomAlert();
-  const { child, setChild } = useChild();
+  const { setChild } = useChild();
   const { setUser } = useUser();
   const [usuario, setUsuario] = useState("");
   const [senha, setSenha] = useState("");
-  const [mostrarSenha, setMostrarSenha] = useState(false);
-  const [loading, setLoading] = useState(false);
 
-  const carregarFilhoSelecionado = async () => {
-    setLoading(true);
+  const salvarFilhoSelecionado = async () => {
+    const result = await request({
+      endpoint: "/api/filhoSelecionado",
+      method: "GET",
+    });
 
-    try {
-      const res = await fetch(`/api/filhoSelecionado`, {
-        method: "GET",
-        headers: { 'Content-Type': 'application/json' },
+    if (result && !result.error) {
+      setChild({
+        foto: result.foto,
+        usuario: result.usuario,
+        nome: result.nome,
+        pontos: result.pontos,
+        fasesConcluidas: result.fasesConcluidas,
+        medalhas: result.medalhas,
       });
-
-      const data = await res.json();
-
-      if (res.ok) {
-        setChild({
-          foto: data.result.foto,
-          usuario: data.result.usuario,
-          nome: data.result.nome,
-          pontos: data.result.pontos,
-          fasesConcluidas: data.result.fasesConcluidas,
-          medalhas: data.result.medalhas,
-        });
-      } else {
-        showAlert({
-          icon: "/icons/erro.png",
-          title: "Erro ao buscar filho selelcionado!",
-          message: data.error || "Ocorreu um erro ao buscar o filho selecionado",
-        });
-      }
-    } catch (error) {
-      console.error(error);
+    } else {
+      if (result.status === 404) return;
       showAlert({
         icon: "/icons/erro.png",
-        title: "Erro ao carregar filhos!",
-        message: "Ocorreu um erro interno no servidor",
+        title: "Erro ao buscar filho selelcionado!",
+        message:
+          result.message || "Ocorreu um erro ao buscar o filho selecionado",
       });
-    } finally {
-      setLoading(false);
     }
   };
-  
+
   const handleLogin = async () => {
     if (!usuario || !senha) {
       showAlert({
-        icon:"/icons/erro.png",
+        icon: "/icons/erro.png",
         title: "Erro ao fazer login!",
         message: "Por favor, preencha todos os campos obrigatórios.",
-      })
+      });
       return;
     }
 
-    setLoading(true);
+    const result = await request({
+      endpoint: "/api/login",
+      method: "POST",
+      body: {
+        usuario: usuario.trim(),
+        senha: senha.trim(),
+      },
+    });
 
-    try {
-      const res = await fetch(`/api/login`, {
-        method: "POST",
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          usuario: usuario.trim(),
-          senha: senha.trim()
-        }),
+    if (result && !result.error) {
+      await Cookies.set("token", result.access_token);
+      setUser({
+        id: result.id,
+        foto: result.foto,
+        usuario: result.usuario,
+        nome: result.nome,
+        email: result.email,
+        filhos: result.filhos,
+        filhoSelecionado: result.filhoSelecionado,
+        token: result.token,
       });
-
-      const data = await res.json();
-
-      if (res.ok) {
-        await Cookies.set("token", data.result.access_token);
-        setUser({
-          id: data.result.id,
-          foto: data.result.foto,
-          usuario: data.result.usuario,
-          nome: data.result.nome,
-          email: data.result.email,
-          filhos: data.result.filhos,
-          filhoSelecionado: data.result.filhoSelecionado,
-          token: data.result.token,
-        });
-        router.push("/dashboard");
-      } else {
-        showAlert({
-          icon: "/icons/erro.png",
-          title: "Erro ao fazer login!",
-          message: data.error || "Ocorreu um erro ao fazer o login. Verifique se o usuário e senha estão corretos",
-        })
-      }
-    } catch (error) {
-      console.error(error);
+      salvarFilhoSelecionado();
+      router.push("/dashboard");
+    } else {
       showAlert({
-          icon: "/icons/erro.png",
-          title: "Erro ao fazer login!",
-          message: "Ocorreu um erro interno no servidor",
-        })
-    } finally {
-      setLoading(false);
+        icon: "/icons/erro.png",
+        title: "Erro ao fazer login!",
+        message:
+          result.message ||
+          "Ocorreu um erro ao fazer o login. Verifique se o usuário e senha estão corretos",
+      });
     }
   };
 
@@ -145,7 +120,7 @@ export default function Home() {
       <main className="flex-1 flex flex-col bg-white text-zinc-800">
         <div className="flex flex-col flex-1 py-6 px-14 gap-4 overflow-hidden">
           {/* Boas-vindas */}
-          <div className="flex relative flex-col justify-center w-full h-36 px-12 gap-2 bg-[url('/images/fundo-crianca.png')] rounded-md text-white flex-shrink-0">
+          <div className="flex relative flex-col justify-center w-full h-36 px-12 gap-2 bg-[url('/images/fundo-crianca.png')] rounded-md text-white shrink-0">
             <span className="font-bold text-3xl">Learny</span>
             <span>
               Facilitando o processo de aprendizagem para crianças <br />
@@ -169,34 +144,46 @@ export default function Home() {
 
             <div className="flex flex-col items-center justify-center px-30 pt-18 gap-2 w-[55%] h-full rounded-md p-8">
               <span className="text-3xl font-bold mb-8">LOGIN</span>
-              <form 
+              <form
                 className="flex flex-col w-full gap-2"
                 onSubmit={(e) => {
                   e.preventDefault();
                   handleLogin();
                 }}
               >
-                <CustomInput label="Usuário" value={usuario} onChange={(e) => setUsuario(e.target.value)} transparent />
-                <CustomInput label="Senha" value={senha} onChange={(e) => setSenha(e.target.value)} transparent isPassword />
+                <CustomInput
+                  label="Usuário"
+                  value={usuario}
+                  onChange={(e) => setUsuario(e.target.value)}
+                  transparent
+                />
+                <CustomInput
+                  label="Senha"
+                  value={senha}
+                  onChange={(e) => setSenha(e.target.value)}
+                  transparent
+                  isPassword
+                />
                 <button
                   type="submit"
                   className={`bg-white rounded-md w-full p-2 h-14 mb-6 hover:cursor-pointer`}
                 >
-                  {loading ? 
-                    <LoadingComponent /> : 
-                    (
-                      <h1 className="font-black bg-gradient-to-r from-[#519ebf] to-[#9c5869] bg-clip-text text-transparent">
-                        Entrar
-                      </h1>
-                    )
-                  }
+                  {loading ? (
+                    <LoadingComponent />
+                  ) : (
+                    <h1 className="font-black bg-linear-to-r from-[#519ebf] to-[#9c5869] bg-clip-text text-transparent">
+                      Entrar
+                    </h1>
+                  )}
                 </button>
               </form>
 
-
               <div className="flex w-full justify-center gap-8 text-md">
                 <span>Sem uma conta?</span>
-                <a className="underline cursor-pointer" onClick={() => router.push("/cadastro?tipo=pais")}>
+                <a
+                  className="underline cursor-pointer"
+                  onClick={() => router.push("/cadastro?tipo=pais")}
+                >
                   Cadastre-se
                 </a>
               </div>

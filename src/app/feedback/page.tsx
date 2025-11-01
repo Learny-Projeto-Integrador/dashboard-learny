@@ -23,7 +23,7 @@ const ScoreComponent = ({color, label, value, icon}: ScoreComponentProps) => {
         style={{color: color}}
       >{label}</span>
       <span className="font-bold text-sm">{value}</span>
-      <div className="bg-white rounded-full p-0.5 absolute right-[-10px] top-[-10px]">
+      <div className="bg-white rounded-full p-0.5 absolute -right-2.5 -top-2.5">
         <Image
           src={`/icons/${icon}`}
           alt="Relogio"
@@ -59,7 +59,7 @@ const FeedbackComponent = () => {
   return(
     <div className="flex flex-col rounded-2xl p-4 gap-3 bg-white shadow-[0_0_6px_rgba(150,150,150,0.6)]">
       <div className="h-14 px-4 flex items-center mb-2 bg-[url('/images/fundo-dino.png')] bg-cover bg-no-repeat">
-        <span className="font-bold text-xl text-white">Dino's Forest</span>
+        <span className="font-bold text-xl text-white">{"Dino's Forest"}</span>
       </div>
       <div className="flex mx-8 justify-between">
         <ScoreComponent color="#FFB300" label="Tempo de Conclusão" value="2:16" icon="relogio.png" />
@@ -77,7 +77,7 @@ const FeedbackComponent = () => {
 }
 
 export default function Feedback() {
-  const { child, setChild } = useChild();
+  const { child } = useChild();
   const [nomeCrianca, setNomeCrianca] = useState("");
 
   useEffect(() => {
@@ -102,7 +102,7 @@ export default function Feedback() {
       <main className="flex-1 flex flex-col bg-white py-6 text-zinc-800 font-montserrat">
         <div className="flex flex-col flex-1 px-14 gap-3 overflow-hidden">
           {/* Início */}
-          <div className="flex relative flex-col mb-2 w-1/3 gap-1 rounded-md text-[#4c4c4c] flex-shrink-0">
+          <div className="flex relative flex-col mb-2 w-1/3 gap-1 rounded-md text-[#4c4c4c] shrink-0">
             <span className="text-sm">Dashboard de:</span>
             <span className="font-bold text-xl">
               {nomeCrianca}

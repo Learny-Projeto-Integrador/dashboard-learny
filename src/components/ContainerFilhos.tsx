@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -6,6 +7,13 @@ import { IoMdAddCircle } from "react-icons/io";
 import { useRouter } from "next/navigation";
 import { useChild } from "@/contexts/ChildContext";
 import { useCustomAlert } from "@/contexts/AlertContext";
+import { useApi } from "@/hooks/useApi";
+
+type Props = {
+  modalOpen: boolean;
+  onClose: () => void;
+  toggleButtonRef: React.RefObject<HTMLButtonElement | null>;
+};
 
 type Filho = {
   _id: string;
@@ -28,94 +36,111 @@ const LoadingComponent = () => {
   );
 };
 
-export default function ContainerFilhos({ onClose }: { onClose: () => void }) {
+export default function ContainerFilhos({
+  modalOpen,
+  onClose,
+  toggleButtonRef,
+}: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const { showAlert } = useCustomAlert();
-  const { child, setChild } = useChild();
+  const { loading, request } = useApi();
+  const { setChild } = useChild();
   const [filhos, setFilhos] = useState<Filho[]>([]);
   const [filhoSelecionado, setFilhoSelecionado] = useState<Filho | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [erroFetch, setErroFetch] = useState(false);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
+      // Se clicou no container ou no botão do toggle, não fecha
       if (
-        containerRef.current &&
-        !containerRef.current.contains(event.target as Node)
+        containerRef.current?.contains(event.target as Node) ||
+        toggleButtonRef?.current?.contains(event.target as Node)
       ) {
-        onClose();
+        return;
       }
+
+      onClose();
     };
 
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [onClose]);
-
-  const carregarTudo = async () => {
-    try {
-      const [resFilhos, resSelecionado] = await Promise.all([
-        fetch(`/api/criancas`, {
-          headers: { "Content-Type": "application/json" },
-        }),
-        fetch(`/api/filhoSelecionado`, {
-          headers: { "Content-Type": "application/json" },
-        }),
-      ]);
-
-      const dataFilhos = await resFilhos.json();
-      const dataSelecionado = await resSelecionado.json();
-
-      if (resFilhos.ok) setFilhos(dataFilhos.result);
-      if (resSelecionado.ok) setFilhoSelecionado(dataSelecionado.result);
-    } catch {
-      showAlert({
-        icon: "/icons/erro.png",
-        title: "Erro ao carregar!",
-        message: "Ocorreu um erro interno",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [onClose, toggleButtonRef]);
 
   const handleSelect = async (filho: Filho) => {
-    setLoading(true);
+    const result = await request({
+      endpoint: "/api/filhoSelecionado",
+      method: "PUT",
+      body: { id: filho?._id },
+    });
 
-    try {
-      const res = await fetch(`/api/filhoSelecionado`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: filho?._id }),
+    if (result && !result.error) {
+      setFilhoSelecionado(result);
+      setChild({
+        foto: result.foto,
+        usuario: result.usuario,
+        nome: result.nome,
+        pontos: result.pontos,
+        fasesConcluidas: result.fasesConcluidas,
+        medalhas: result.medalhas,
       });
-
-      const data = await res.json();
-
-      if (res.ok) {
-        setFilhoSelecionado(data.result);
-        setChild({
-          foto: data.result.foto,
-          usuario: data.result.usuario,
-          nome: data.result.nome,
-          pontos: data.result.pontos,
-          fasesConcluidas: data.result.fasesConcluidas,
-          medalhas: data.result.medalhas,
-        });
-      }
-    } finally {
-      setLoading(false);
+    } else {
+      showAlert({
+        icon: "/icons/erro.png",
+        title: "Erro ao selecionar o filho!",
+        message:
+          result.message ||
+          "Ocorreu um erro ao selecionar o filho, aguarde e tente novamente",
+      });
     }
   };
 
   useEffect(() => {
-    carregarTudo();
-  }, []);
+    if (erroFetch) return;
+    const carregarFilhos = async () => {
+      const result = await request({
+        endpoint: "/api/criancas",
+        method: "GET",
+      });
+      if (result && !result.error) {
+        setFilhos(result);
+      } else {
+        if (result.status === 404 || result.status === 401) return;
+        setErroFetch(true);
+        showAlert({
+          icon: "/icons/erro.png",
+          title: "Erro ao carregar filhos!",
+          message: result.message || "Ocorreu um erro ao carregar os filhos",
+        });
+      }
+    };
+    const carregarFilhoSelecionado = async () => {
+      const result = await request({
+        endpoint: "/api/filhoSelecionado",
+        method: "GET",
+      });
+      if (result && !result.error) {
+        setFilhoSelecionado(result);
+      } else {
+        if (result.status === 404 || result.status === 401) return;
+        setErroFetch(true);
+        showAlert({
+          icon: "/icons/erro.png",
+          title: "Erro ao carregar filho selecionado!",
+          message:
+            result.message || "Ocorreu um erro ao carregar o filho selecionado",
+        });
+      }
+    };
+    carregarFilhos();
+    carregarFilhoSelecionado();
+  }, [modalOpen, erroFetch]);
 
   return (
     <div
       ref={containerRef}
       onClick={(e) => e.stopPropagation()}
-      className="flex flex-col items-center justify-center absolute left-56 w-80 top-28 min-h-28 rounded-2xl p-[2px] bg-white shadow-[0_0_12px_rgba(150,150,150,0.7)] z-50"
+      className="flex flex-col items-center justify-center absolute left-56 w-80 top-28 min-h-28 rounded-2xl p-0.5 bg-white shadow-[0_0_12px_rgba(150,150,150,0.7)] z-50"
     >
       {loading ? (
         <LoadingComponent />
@@ -130,7 +155,7 @@ export default function ContainerFilhos({ onClose }: { onClose: () => void }) {
                 <button className="flex w-full bg-zinc-300 justify-center rounded-lg py-2 hover:cursor-pointer">
                   <div
                     onClick={() => {
-                      router.push("/cadastro?tipo=criancas")
+                      router.push("/cadastro?tipo=criancas");
                       router.refresh();
                     }}
                     className="flex items-center justify-center"
@@ -160,11 +185,9 @@ export default function ContainerFilhos({ onClose }: { onClose: () => void }) {
                     </div>
                   </div>
                   <button
-                  className="hover:cursor-pointer"
+                    className="hover:cursor-pointer"
                     onClick={() =>
-                      router.push(
-                        `/crianca/perfil?id=${filhoSelecionado._id}`
-                      )
+                      router.push(`/crianca/perfil?id=${filhoSelecionado._id}`)
                     }
                   >
                     <Image
@@ -199,16 +222,14 @@ export default function ContainerFilhos({ onClose }: { onClose: () => void }) {
                       </button>
                     ))}
 
-                  <button 
+                  <button
                     className="flex w-full bg-zinc-300 justify-center rounded-lg py-2 hover:cursor-pointer"
                     onClick={() => {
-                      router.push("/cadastro?tipo=criancas")
+                      router.push("/cadastro?tipo=criancas");
                       router.refresh();
                     }}
-                    >
-                    <div
-                      className="flex items-center justify-center"
-                    >
+                  >
+                    <div className="flex items-center justify-center">
                       <IoMdAddCircle name="add-circle" size={30} color="#fff" />
                     </div>
                   </button>
@@ -219,7 +240,6 @@ export default function ContainerFilhos({ onClose }: { onClose: () => void }) {
             {loading && (
               <p className="text-white text-sm mt-2">Carregando...</p>
             )}
-            {error && <p className="text-red-300 text-sm mt-2">{error}</p>}
           </div>
         </div>
       )}

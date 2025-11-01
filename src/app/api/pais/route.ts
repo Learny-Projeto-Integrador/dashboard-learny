@@ -12,10 +12,7 @@ export async function POST(req: NextRequest) {
   });
 
   const result = await response.json();
-  return NextResponse.json(
-    { result, error: result.error }, 
-    { status: response.status }
-  );
+  return NextResponse.json(result, { status: response.status });
 }
 
 export async function PUT(req: NextRequest) {
@@ -32,10 +29,7 @@ export async function PUT(req: NextRequest) {
   });
 
   const result = await response.json();
-  return NextResponse.json(
-    { result, error: result.error }, 
-    { status: response.status }
-  );
+  return NextResponse.json(result, { status: response.status });
 }
 
 export async function DELETE(req: NextRequest) {
@@ -49,10 +43,15 @@ export async function DELETE(req: NextRequest) {
     },
   });
 
+  if (response.status === 204) {
+    return new NextResponse(null, { status: 204 });
+  }
+
   const result = await response.json();
-  return NextResponse.json(
-    { result, error: result.error }, 
-    { status: response.status }
-  );
+
+  return new NextResponse(result, {
+    status: response.status,
+    headers: { 'Content-Type': 'application/json' },
+  });
 }
 

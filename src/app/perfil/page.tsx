@@ -4,19 +4,22 @@ import BarraXP from "@/components/BarraXP";
 import BtnSelecionaFoto from "@/components/BtnSelecionaFoto";
 import CustomButton from "@/components/CustomButton";
 import CustomInput from "@/components/CustomInput";
-import GradientSwitch from "@/components/GradientSwitch";
 import Navbar from "@/components/Navbar";
 import { useCustomAlert } from "@/contexts/AlertContext";
 import { useUser } from "@/contexts/UserContext";
+import { useApi } from "@/hooks/useApi";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { BsThreeDots } from "react-icons/bs";
 import { IoMdClose } from "react-icons/io";
 
 export default function Perfil() {
+  const router = useRouter();
   const { user, logout } = useUser();
+  const { request } = useApi();
   const { showAlert } = useCustomAlert();
-  const [foto, setFoto] = useState("");
+  const [foto, setFoto] = useState<string | null>("");
   const [nomePerfil, setNomePerfil] = useState("");
   const [usuario, setUsuario] = useState("");
   const [senha, setSenha] = useState("");
@@ -25,96 +28,70 @@ export default function Perfil() {
   const [selectedInput, setSelectedInput] = useState<string | null>(null);
   const [modalAberto, setModalAberto] = useState(false);
   const [editando, setEditando] = useState(false);
-  const [loading, setLoading] = useState(false);
 
   const handleEdit = async () => {
-    if (!usuario || !nome || !email) {
+    if (!usuario || !nome) {
       showAlert({
-        icon:"/icons/erro.png",
-        title: "Erro ao editar!",
+        icon: "/icons/erro.png",
+        title: "Erro ao editar usuário!",
         message: "Por favor, preencha todos os campos obrigatórios.",
-      })
+      });
       return;
     }
 
-    setLoading(true);
+    const result = await request({
+      endpoint: `/api/pais/`,
+      method: "PUT",
+      body: {
+        foto: foto?.trim(),
+        usuario: usuario.trim(),
+        senha: senha.trim(),
+        email: email.trim(),
+        nome: nome.trim(),
+      },
+    });
 
-    try {
-      const res = await fetch(`/api/pais`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          foto: foto.trim(),
-          usuario: usuario.trim(),
-          senha: senha.trim(),
-          email: email.trim(),
-          nome: nome.trim(),
-        }),
+    if (result && !result.error) {
+      showAlert({
+        icon: "/icons/sucesso.png",
+        title: "Usuário editado com sucesso!",
+        message:
+          "Edição realizado com sucesso. Aguarde a atualização dos dados na tela.",
+        onClose: () => router.refresh(),
       });
-
-      const data = await res.json();
-
-      if (res.ok) {
-        showAlert({
-          icon: "/icons/sucesso.png",
-          title: "Usuário cadastrado com sucesso!",
-          message:
-            "Cadastro realizado com sucesso. Faça o login usufrua do aplicativo!",
-        });
-      } else {
-        showAlert({
-          icon: "/icons/erro.png",
-          title: "Erro ao editar usuário!",
-          message:
-            data.error ||
-            "Ocorreu um erro ao editar o usuário. Verifique se os dados estão preenchidos corretamente",
-        });
-      }
-    } catch (error) {
-      console.error(error);
+    } else {
       showAlert({
         icon: "/icons/erro.png",
-        title: "Erro ao cadastrar usuário!",
-        message: "Ocorreu um erro interno no servidor",
+        title: "Erro ao editar o usuário!",
+        message:
+          result.message ||
+          "Ocorreu um erro ao editar o usuário. Verifique se os dados estão preenchidos corretamente",
       });
-    } finally {
-      setLoading(false);
     }
   };
 
   const handleDelete = async () => {
-    setLoading(true);
-
-    try {
-      const res = await fetch(`/api/pais`, {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
+    const result = await request({
+      endpoint: `/api/pais`,
+      method: "DELETE",
+    });
+    if (result && !result.error) {
+      showAlert({
+        icon: "/icons/sucesso.png",
+        title: "Conta excluída com sucesso.",
+        message:
+          "Conta excluída com sucesso. Redirecionando para a página de login.",
+        onClose: () => logout(),
       });
-
-      if (res.status === 204 || res.status === 200) {
-        showAlert({
-          icon: "/icons/sucesso.png",
-          title: "Conta excluida com sucesso",
-          message: "Sua conta foi excluida. Retornando a tela inicial",
-        });
-        logout();
-        return;
-      } else {
-        showAlert({
-          icon: "/icons/erro.png",
-          title: "Erro ao editar usuário!",
-          message: "Ocorreu um erro ao excluir a sua conta. Aguarde e tente novamente",
-        });
-      }
-    } catch (error) {
-      console.error(error);
+      return;
+    } else {
       showAlert({
         icon: "/icons/erro.png",
-        title: "Erro ao excluir usuário!",
-        message: "Ocorreu um erro interno no servidor",
+        title: "Erro ao excluir conta!",
+        message:
+          result.message ||
+          "Ocorreu um erro ao excluir sua conta. Aguarde um pouco e tente novamente.",
       });
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -148,14 +125,14 @@ export default function Perfil() {
               <BtnSelecionaFoto
                 type="edit"
                 image={foto}
-                onChange={(novaImagem: any) => setFoto(novaImagem)}
+                onChange={(novaImagem: string | null) => setFoto(novaImagem)}
               />
               <div className="flex flex-col gap-1">
-                <span className="font-bold text-2xl bg-gradient-to-r from-[#d47489] to-[#7dc3ec] bg-clip-text text-transparent">
+                <span className="font-bold text-2xl bg-linear-to-r from-[#d47489] to-[#7dc3ec] bg-clip-text text-transparent">
                   {nomePerfil}
                 </span>
-                <span className="text-[#4c4c4c]">You're a</span>
-                <span className="font-bold text-lg bg-gradient-to-r from-[#d47489] to-[#7dc3ec] bg-clip-text text-transparent">
+                <span className="text-[#4c4c4c]">{"You're a"}</span>
+                <span className="font-bold text-lg bg-linear-to-r from-[#d47489] to-[#7dc3ec] bg-clip-text text-transparent">
                   SUPER PARENT
                 </span>
               </div>

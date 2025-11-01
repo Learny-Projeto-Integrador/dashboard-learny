@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 
 import BarraXP from "@/components/BarraXP";
@@ -7,7 +8,7 @@ import CustomInput from "@/components/CustomInput";
 import GradientSwitch from "@/components/GradientSwitch";
 import Navbar from "@/components/Navbar";
 import { useCustomAlert } from "@/contexts/AlertContext";
-import { useUser } from "@/contexts/UserContext";
+import { useApi } from "@/hooks/useApi";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -17,10 +18,10 @@ import { IoMdClose } from "react-icons/io";
 export default function Perfil() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { request } = useApi();
   const { showAlert } = useCustomAlert();
-  const { logout } = useUser();
   const id = searchParams.get("id");
-  const [foto, setFoto] = useState("");
+  const [foto, setFoto] = useState<string | null>("");
   const [nomePerfil, setNomePerfil] = useState("");
   const [usuario, setUsuario] = useState("");
   const [senha, setSenha] = useState("");
@@ -30,49 +31,7 @@ export default function Perfil() {
   const [selectedInput, setSelectedInput] = useState<string | null>(null);
   const [modalAberto, setModalAberto] = useState(false);
   const [editando, setEditando] = useState(false);
-  const [loading, setLoading] = useState(false);
-
-  const [status, setStatus] = useState({
-    ranking: false,
-    audio: false,
-  });
-
-  const carregarFilhoSelecionado = async () => {
-    setLoading(true);
-    try {
-      const res = await fetch(`/api/crianca/${id}`, {
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
-      });
-
-      const data = await res.json();
-
-      if (res.ok) {
-        setFoto(data.result.foto);
-        setNomePerfil(data.result.nome);
-        setUsuario(data.result.usuario);
-        setNome(data.result.nome);
-        setAudio(data.result.audio);
-        setRanking(data.result.ranking);
-      } else {
-        showAlert({
-          icon: "/icons/erro.png",
-          title: "Erro ao buscar filho selecionado!",
-          message:
-            data.error || "Ocorreu um erro ao carregar o filho selecionado",
-        });
-      }
-    } catch (error) {
-      console.error(error);
-      showAlert({
-        icon: "/icons/erro.png",
-        title: "Erro ao buscar filho selecionado!",
-        message: "Ocorreu um erro interno no servidor",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [erroFetch, setErroFetch] = useState(false)
 
   const handleEdit = async () => {
     if (!usuario || !nome) {
@@ -84,86 +43,58 @@ export default function Perfil() {
       return;
     }
 
-    setLoading(true);
+    const result = await request({
+      endpoint: `/api/crianca/${id}`,
+      method: "PUT",
+      body: {
+        foto: foto?.trim(),
+        usuario: usuario.trim(),
+        senha: senha.trim(),
+        nome: nome.trim(),
+      },
+    });
 
-    try {
-      const res = await fetch(`/api/crianca/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          foto: foto.trim(),
-          usuario: usuario.trim(),
-          senha: senha.trim(),
-          nome: nome.trim(),
-        }),
+    if (result && !result.error) {
+      showAlert({
+        icon: "/icons/sucesso.png",
+        title: "Usuário editado com sucesso!",
+        message:
+          "Edição realizado com sucesso. Aguarde a atualização dos dados na tela.",
+        onClose: () => router.refresh(),
       });
-
-      const data = await res.json();
-
-      if (res.ok) {
-        showAlert({
-          icon: "/icons/sucesso.png",
-          title: "Usuário editado com sucesso!",
-          message:
-            "Edição realizado com sucesso. Aguarde a atualização dos dados na tela.",
-          onClose: () => router.refresh(),
-        });
-      } else {
-        showAlert({
-          icon: "/icons/erro.png",
-          title: "Erro ao editar o usuário!",
-          message:
-            data.error ||
-            "Ocorreu um erro ao editar o usuário. Verifique se os dados estão preenchidos corretamente",
-        });
-      }
-    } catch (error) {
-      console.error(error);
+    } else {
       showAlert({
         icon: "/icons/erro.png",
-        title: "Erro ao fazer login!",
-        message: "Ocorreu um erro interno no servidor",
+        title: "Erro ao editar o usuário!",
+        message:
+          result.message ||
+          "Ocorreu um erro ao editar o usuário. Verifique se os dados estão preenchidos corretamente",
       });
-    } finally {
-      setLoading(false);
     }
   };
 
   const handleDelete = async () => {
-    setLoading(true);
-
-    try {
-      const res = await fetch(`/api/crianca/${id}`, {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
+    const result = await request({
+      endpoint: `/api/crianca/${id}`,
+      method: "DELETE",
+    });
+    if (result && !result.error) {
+      showAlert({
+        icon: "/icons/sucesso.png",
+        title: "Conta excluída com sucesso.",
+        message:
+          "Conta excluída com sucesso. Redirecionando para a página de login.",
+        onClose: () => router.push("/"),
       });
-
-      if (res.status === 204 || res.status === 200) {
-        showAlert({
-          icon: "/icons/sucesso.png",
-          title: "Conta excluída com sucesso.",
-          message:
-            "Conta excluiída com sucesso. Redirecionando para a página de login.",
-          onClose: () => logout(),
-        });
-        return;
-      } else {
-        showAlert({
-          icon: "/icons/erro.png",
-          title: "Erro ao excluir conta!",
-          message:
-            "Ocorreu um erro ao excluir sua conta. Aguarde um pouco e tente novamente.",
-        });
-      }
-    } catch (error) {
-      console.error(error);
+      return;
+    } else {
       showAlert({
         icon: "/icons/erro.png",
-        title: "Erro ao fazer login!",
-        message: "Ocorreu um erro interno no servidor",
+        title: "Erro ao excluir conta!",
+        message:
+          result.message ||
+          "Ocorreu um erro ao excluir sua conta. Aguarde um pouco e tente novamente.",
       });
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -171,54 +102,63 @@ export default function Perfil() {
     type: "ranking" | "audio",
     value: boolean
   ) => {
-    setLoading(true);
-
     // Monta o corpo do fetch com os valores atuais, substituindo o tipo que mudou
     const body = {
       ranking: type === "ranking" ? value : ranking,
       audio: type === "audio" ? value : audio,
     };
 
-    try {
-      const res = await fetch(`/api/crianca/${id}/status`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
+    const result = await request({
+      endpoint: `/api/crianca/${id}/status`,
+      method: "PUT",
+      body: body,
+    });
 
-      const data = await res.json();
-
-      if (!res.ok) {
-        showAlert({
-          icon: "/icons/erro.png",
-          title: "Erro ao editar o status!",
-          message: data.error || "Ocorreu um erro ao editar o status",
-        });
-        return;
-      }
-
-      // Atualiza o estado local somente se a API respondeu ok
+    if (result && !result.error) {
       if (type === "ranking") setRanking(value);
       if (type === "audio") setAudio(value);
-    } catch (error) {
-      console.error(error);
+    } else {
       showAlert({
         icon: "/icons/erro.png",
-        title: "Erro ao alterar o status!",
-        message: "Ocorreu um erro interno no servidor",
+        title: "Erro ao editar o status!",
+        message: result.message || "Ocorreu um erro ao editar o status",
       });
-    } finally {
-      setLoading(false);
     }
   };
 
   useEffect(() => {
-    if (id) carregarFilhoSelecionado();
-  }, [id]);
+    if (!id || erroFetch) return;
+
+    const fetchFilho = async () => {
+      const result = await request({
+        endpoint: `/api/crianca/${id}`,
+        method: "GET",
+      });
+
+      if (result && !result.error) {
+        setFoto(result.foto);
+        setNomePerfil(result.nome);
+        setUsuario(result.usuario);
+        setNome(result.nome);
+        setAudio(result.audio);
+        setRanking(result.ranking);
+      } else {
+        if (result.status === 404) return
+        setErroFetch(true);
+        showAlert({
+          icon: "/icons/erro.png",
+          title: "Erro ao buscar filho!",
+          message: result.message || "Erro desconhecido ao carregar filho",
+        });
+      }
+    };
+
+    fetchFilho();
+  }, [id, showAlert, erroFetch]);
 
   const SwitchRanking = () => {
     return (
-      <div className="flex items-center w-full h-14 rounded-full bg-gradient-to-r from-[#8f6579] to-[#519ebf] shadow-sm p-1">
+      <div className="flex items-center w-full h-14 rounded-full bg-linear-to-r from-[#8f6579] to-[#519ebf] shadow-sm p-1">
         <button
           className={`flex ${
             ranking
@@ -276,16 +216,13 @@ export default function Perfil() {
               <BtnSelecionaFoto
                 type="edit"
                 image={foto}
-                onChange={(novaImagem: any) => setFoto(novaImagem)}
+                onChange={(novaImagem: string | null) => setFoto(novaImagem)}
               />
               <div className="flex flex-col gap-1">
-                <span className="font-bold text-2xl bg-gradient-to-r from-[#d47489] to-[#7dc3ec] bg-clip-text text-transparent">
+                <span className="font-bold text-2xl bg-linear-to-r from-[#d47489] to-[#7dc3ec] bg-clip-text text-transparent">
                   {nomePerfil}
                 </span>
-                <span className="text-[#4c4c4c]">You're a</span>
-                <span className="font-bold text-lg bg-gradient-to-r from-[#d47489] to-[#7dc3ec] bg-clip-text text-transparent">
-                  SUPER PARENT
-                </span>
+                <span className="text-[#4c4c4c]">Lv. <span className="font-bold text-lg">100</span></span>
               </div>
               {modalAberto ? (
                 <div
@@ -385,7 +322,7 @@ export default function Perfil() {
             <div className="flex flex-col w-full rounded-2xl px-6 py-12 mt-12 gap-4 items-center justify-center bg-white shadow-[0_0_6px_rgba(150,150,150,0.6)]">
               <div className="flex w-4/5 gap-4 items-center mb-6">
                 <div className="w-10 h-10 bg-[url('/icons/acessibilidade.png')] bg-contain bg-no-repeat" />
-                <span className="font-bold bg-gradient-to-r from-[#8f6579] to-[#519ebf] bg-clip-text text-transparent">
+                <span className="font-bold bg-linear-to-r from-[#8f6579] to-[#519ebf] bg-clip-text text-transparent">
                   Acessibilidade
                 </span>
               </div>
