@@ -1,5 +1,5 @@
 "use client";
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
 import CustomAlert from "@/components/CustomAlert";
 
 type AlertData = {
@@ -43,26 +43,24 @@ export function AlertProvider({ children }: Props) {
     }
   }, [queue, current]);
 
+  const handleClose = useCallback(() => {
+    if (!current) return;
+
+    setVisible(false);
+
+    if (current.onClose) current.onClose();
+    if (current.onRedirect) current.onRedirect();
+
+    setTimeout(() => setCurrent(null), 300);
+  }, [current]);
+
   // Auto-fechar após 5 segundos
   useEffect(() => {
     if (visible) {
       const timer = setTimeout(() => handleClose(), 5000);
       return () => clearTimeout(timer);
     }
-  }, [visible]);
-
-  const handleClose = () => {
-    if (!current) return;
-
-    setVisible(false);
-
-    // Executa callbacks se existirem
-    if (current.onClose) current.onClose();
-    if (current.onRedirect) current.onRedirect();
-
-    // Espera animação sumir antes de limpar
-    setTimeout(() => setCurrent(null), 300);
-  };
+  }, [visible, handleClose]);
 
   return (
     <AlertContext.Provider value={{ showAlert }}>

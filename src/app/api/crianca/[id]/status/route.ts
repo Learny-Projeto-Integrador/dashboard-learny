@@ -16,8 +16,5 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 
   const result = await response.json();
 
-  return NextResponse.json(
-    { result, error: result.error },
-    { status: response.status }
-  );
+  return NextResponse.json(result, { status: response.status });
 }

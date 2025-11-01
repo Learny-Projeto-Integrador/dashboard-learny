@@ -12,10 +12,7 @@ export async function GET(req: NextRequest) {
   });
 
   const result = await response.json();
-  return NextResponse.json(
-    { result }, 
-    { status: response.status }
-  );
+  return NextResponse.json(result, { status: response.status });
 }
 
 export async function POST(req: NextRequest) {
@@ -32,8 +29,5 @@ export async function POST(req: NextRequest) {
   });
 
   const result = await response.json();
-  return NextResponse.json(
-    { result, error: result.error }, 
-    { status: response.status }
-  );
+  return NextResponse.json(result, { status: response.status });
 }

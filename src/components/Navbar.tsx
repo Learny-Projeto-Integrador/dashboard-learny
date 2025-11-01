@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import BtnNavbar from "./BtnNavbar";
 import { useUser } from "@/contexts/UserContext";
@@ -15,10 +15,10 @@ export default function Navbar() {
   const [foto, setFoto] = useState("");
   const [fotoCrianca, setFotoCrianca] = useState("");
   const [nome, setNome] = useState("");
-  const [loading, setLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
-  const [rotaAtual, setRotaAtual] = useState("");
+
+  const toggleButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     if (user) {
@@ -68,15 +68,16 @@ export default function Navbar() {
                 }}
               >
                 <button
-                  className="w-10 h-10 bg-cover bg-center bg-no-repeat rounded-full border-2 border-white hover:cursor-pointer"
+                  ref={toggleButtonRef}
+                  className={`w-10 h-10 bg-cover bg-center bg-no-repeat rounded-full ${fotoCrianca && "border-2 border-white"} hover:cursor-pointer`}
                   style={{
-                    backgroundImage: `url(${fotoCrianca || "/images/pai.png"})`,
+                    backgroundImage: `url(${child ? fotoCrianca || "/images/avatar.png" : "images/add.png"})`,
                   }}
-                  onClick={() => setModalOpen(true)}
+                  onClick={() => setModalOpen(prev => !prev)}
                 />
               </div>
-              <span className="text-[#4c4c4c] font-bold">{user?.nome}</span>
-              <span className="text-[#4c4c4c] text-[0.75rem]">You're a</span>
+              <span className="text-[#4c4c4c] font-bold">{nome}</span>
+              <span className="text-[#4c4c4c] text-[0.75rem]">{"You're a"}</span>
               <span className="font-bold bg-gradient-to-r from-[#d47489] to-[#7dc3ec] bg-clip-text text-transparent">
                 SUPER PARENT
               </span>
@@ -132,7 +133,7 @@ export default function Navbar() {
             onClick={logout}
           />
         </nav>
-        {modalOpen && <ContainerFilhos onClose={() => setModalOpen(false)} />}
+        {modalOpen && <ContainerFilhos onClose={() => setModalOpen(false)} toggleButtonRef={toggleButtonRef} />}
       </aside>
     </div>
   );

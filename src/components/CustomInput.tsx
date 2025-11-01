@@ -1,6 +1,7 @@
-"use client"
+"use client";
 
 import { useState } from "react";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 type Props = {
   label: string;
@@ -22,6 +23,8 @@ export default function CustomInput({
   selected,
   onClick, // 🔹 adicione isso
 }: Props & { onClick?: () => void }) {
+  const [mostrarSenha, setMostrarSenha] = useState(false);
+
   return (
     <div
       className={`
@@ -36,17 +39,33 @@ export default function CustomInput({
       `}
       onClick={onClick} // 🔹 aqui
     >
-      <span className={`${!transparent && "font-bold text-[#4c4c4c]"} select-none`}>
+      <span
+        className={`${!transparent && "font-bold text-[#4c4c4c]"} select-none`}
+      >
         {label}:
       </span>
       <input
-        type={isPassword ? "password" : "text"}
-        className={`w-full p-1 ${transparent ? "text-white" : "text-[#4c4c4c]"} focus:outline-none`}
+        type={isPassword && !mostrarSenha ? "password" : "text"}
+        className={`w-full p-1 ${
+          transparent ? "text-white" : "text-[#4c4c4c]"
+        } focus:outline-none`}
         value={value}
         onChange={onChange}
         disabled={disabled}
       />
+      {isPassword && (
+        <button
+          type="button"
+          onClick={() => setMostrarSenha((prev) => !prev)}
+          className="hover:cursor-pointer"
+        >
+          {mostrarSenha ? (
+            <FaEyeSlash color="white" size={25} />
+          ) : (
+            <FaEye color="white" size={25} />
+          )}
+        </button>
+      )}
     </div>
   );
 }
-

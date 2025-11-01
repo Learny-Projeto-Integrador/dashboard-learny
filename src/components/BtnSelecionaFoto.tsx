@@ -1,7 +1,9 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import Image from "next/image";
+import { useApi } from "@/hooks/useApi";
+import { useCustomAlert } from "@/contexts/AlertContext";
 
 type Props = {
   type?: "add" | "edit";
@@ -23,45 +25,53 @@ const LoadingComponent = () => {
   );
 };
 
-export default function BtnSelecionaFoto({ type = "add", image, onChange }: Props) {
-  const [loading, setLoading] = useState(false);
+export default function BtnSelecionaFoto({
+  type = "add",
+  image,
+  onChange,
+}: Props) {
+  const { loading, request } = useApi();
+  const { showAlert } = useCustomAlert();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleClick = () => {
     fileInputRef.current?.click();
   };
 
-  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
     const formData = new FormData();
     formData.append("file", file);
 
-    setLoading(true);
+    const result = await request({
+      endpoint: "/api/upload",
+      method: "POST",
+      body: formData,
+      hasHeaders: true,
+    });
 
-    try {
-      const res = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
+    if (result && !result.error) {
+      if (onChange) onChange(result.url);
+    } else {
+      showAlert({
+        icon: "/icons/erro.png",
+        title: "Erro ao enviar imagem!",
+        message:
+          result.message ||
+          "Ocorreu um erro ao enviar a imagem para o servidor",
       });
-
-      if (!res.ok) throw new Error("Erro ao enviar imagem");
-
-      const data = await res.json();
-      if (onChange) onChange(data.url);
-    } catch (err) {
-      console.error("Erro no upload:", err);
-    } finally {
-      setLoading(false);
     }
   };
 
   return (
     <div className="relative">
-    { loading ? 
-      <LoadingComponent /> : 
-      type === "edit" ? (
+      {loading ? (
+        <LoadingComponent />
+      ) : type === "edit" ? (
         <button
           onClick={handleClick}
           className="w-40 h-40 flex items-end justify-end pr-2 pb-2 bg-cover bg-center bg-no-repeat rounded-lg hover:cursor-pointer"

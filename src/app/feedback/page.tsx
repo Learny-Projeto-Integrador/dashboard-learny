@@ -59,7 +59,7 @@ const FeedbackComponent = () => {
   return(
     <div className="flex flex-col rounded-2xl p-4 gap-3 bg-white shadow-[0_0_6px_rgba(150,150,150,0.6)]">
       <div className="h-14 px-4 flex items-center mb-2 bg-[url('/images/fundo-dino.png')] bg-cover bg-no-repeat">
-        <span className="font-bold text-xl text-white">Dino's Forest</span>
+        <span className="font-bold text-xl text-white">{"Dino's Forest"}</span>
       </div>
       <div className="flex mx-8 justify-between">
         <ScoreComponent color="#FFB300" label="Tempo de Conclusão" value="2:16" icon="relogio.png" />
@@ -77,7 +77,7 @@ const FeedbackComponent = () => {
 }
 
 export default function Feedback() {
-  const { child, setChild } = useChild();
+  const { child } = useChild();
   const [nomeCrianca, setNomeCrianca] = useState("");
 
   useEffect(() => {

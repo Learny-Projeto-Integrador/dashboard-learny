@@ -1,6 +1,5 @@
 "use client";
 
-import BarraXP from "@/components/BarraXP";
 import GradientSwitch from "@/components/GradientSwitch";
 import Navbar from "@/components/Navbar";
 import Image from "next/image";

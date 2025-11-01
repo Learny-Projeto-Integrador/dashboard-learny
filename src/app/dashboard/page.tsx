@@ -1,7 +1,6 @@
 "use client";
 
 import BarraXP from "@/components/BarraXP";
-import CustomAlert from "@/components/CustomAlert";
 import Navbar from "@/components/Navbar";
 import { useChild } from "@/contexts/ChildContext";
 import Image from "next/image";
@@ -13,7 +12,6 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
   ResponsiveContainer,
   PieChart,
   Pie,
@@ -170,7 +168,7 @@ const Medalha = ({ color, text }: MedalhaProps) => {
 };
 
 export default function Dashboard() {
-  const { child, setChild } = useChild();
+  const { child } = useChild();
   const [nomeCrianca, setNomeCrianca] = useState("");
   const [pontos, setPontos] = useState(0);
   const [fasesConcluidas, setFasesConcluidas] = useState(0);

@@ -1,8 +1,10 @@
 type Props = {
-  pontos: number,
+  pontos?: number,
+  value?: number,
+  max?: number,
 }
 
-export default function BarraXP({ value = 100, max = 300 }) {
+export default function BarraXP({ value = 100, max = 300 }: Props) {
   const percent = Math.min((value / max) * 100, 100);
 
   return (

@@ -2,6 +2,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export default function NavbarLogin() {
   const router = useRouter();
@@ -54,7 +55,7 @@ export default function NavbarLogin() {
               <span className="text-[#4c4c4c] font-black">Learny</span>
             </div>
           ) : (
-            <a
+            <Link
               href="/"
               className="flex items-center gap-3 p-1 rounded-md transition text-sm"
             >
@@ -69,7 +70,7 @@ export default function NavbarLogin() {
                   }`}
                 />
               }
-            </a>
+            </Link>
           )}
           <div
             className={`flex items-center ${

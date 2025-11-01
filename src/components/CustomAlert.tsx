@@ -8,10 +8,10 @@ type Props = {
   onClose: () => void;
 };
 
-export default function CustomAlert({ icon, title, message, visible, onClose }: Props) {
+export default function CustomAlert({ icon, title, message, visible }: Props) {
   return (
     <div
-      onClick={(e) => e.stopPropagation()} // evita fechar ao clicar no alerta
+      onClick={(e) => e.stopPropagation()}
       className={`
         relative top-16 right-0 rounded-lg w-1/3 max-w-[90%]
         p-8 bg-white shadow-[0_0_12px_rgba(0,0,0,0.25)]

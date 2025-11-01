@@ -1,10 +1,12 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 'use client';
 import * as React from 'react';
 import Button from '@mui/material/Button';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DatePicker, DatePickerProps } from '@mui/x-date-pickers/DatePicker';
-import dayjs, { Dayjs } from 'dayjs';
+import { Dayjs } from 'dayjs';
 import 'dayjs/locale/pt-br';
 import { useValidation, validateDate } from '@mui/x-date-pickers/validation';
 import {
@@ -20,9 +22,8 @@ type Props = {
 };
 
 function ButtonDateField(props: any) {
-  // Remove props que não são válidas no DOM
   const { internalProps, forwardedProps } = useSplitFieldProps(props, 'date');
-  const { slotProps, inputRef, ...safeForwarded } = forwardedProps;
+  const { slotProps: _slotProps, inputRef: _inputRef, ...safeForwarded } = forwardedProps;
 
   const pickerContext = usePickerContext();
   const handleRef = useForkRef(pickerContext.triggerRef, pickerContext.rootRef);
@@ -32,7 +33,7 @@ function ButtonDateField(props: any) {
     validator: validateDate,
     value: pickerContext.value,
     timezone: pickerContext.timezone,
-    //@ts-ignore
+    // @ts-expect-error MUI internal type not exported
     props: internalProps,
   });
 

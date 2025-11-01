@@ -14,10 +14,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 
   const result = await response.json();
 
-  return NextResponse.json(
-    { result },
-    { status: response.status }
-  );
+  return NextResponse.json(result, { status: response.status });
 }
 
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
@@ -36,10 +33,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 
   const result = await response.json();
 
-  return NextResponse.json(
-    { result, error: result.error },
-    { status: response.status }
-  );
+  return NextResponse.json(result, { status: response.status });
 }
 
 export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
@@ -54,6 +48,10 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
     },
   });
 
+  if (response.status === 204) {
+    return new NextResponse(null, { status: 204 });
+  }
+
   const result = await response.json();
 
   return new NextResponse(result, {
@@ -61,3 +59,4 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
     headers: { 'Content-Type': 'application/json' },
   });
 }
+
