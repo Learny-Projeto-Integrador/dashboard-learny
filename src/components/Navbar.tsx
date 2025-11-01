@@ -78,7 +78,7 @@ export default function Navbar() {
               </div>
               <span className="text-[#4c4c4c] font-bold">{nome}</span>
               <span className="text-[#4c4c4c] text-[0.75rem]">{"You're a"}</span>
-              <span className="font-bold bg-gradient-to-r from-[#d47489] to-[#7dc3ec] bg-clip-text text-transparent">
+              <span className="font-bold bg-linear-to-r from-[#d47489] to-[#7dc3ec] bg-clip-text text-transparent">
                 SUPER PARENT
               </span>
             </div>
@@ -133,7 +133,13 @@ export default function Navbar() {
             onClick={logout}
           />
         </nav>
-        {modalOpen && <ContainerFilhos onClose={() => setModalOpen(false)} toggleButtonRef={toggleButtonRef} />}
+        {modalOpen && 
+          <ContainerFilhos 
+          modalOpen={modalOpen} 
+          onClose={() => setModalOpen(false)} 
+          toggleButtonRef={toggleButtonRef} 
+          />
+        }
       </aside>
     </div>
   );

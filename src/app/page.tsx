@@ -40,8 +40,6 @@ export default function Home() {
       method: "GET",
     });
 
-    console.log(result)
-
     if (result && !result.error) {
       setChild({
         foto: result.foto,
@@ -82,7 +80,6 @@ export default function Home() {
     });
 
     if (result && !result.error) {
-      console.log(result);
       await Cookies.set("token", result.access_token);
       setUser({
         id: result.id,
@@ -123,7 +120,7 @@ export default function Home() {
       <main className="flex-1 flex flex-col bg-white text-zinc-800">
         <div className="flex flex-col flex-1 py-6 px-14 gap-4 overflow-hidden">
           {/* Boas-vindas */}
-          <div className="flex relative flex-col justify-center w-full h-36 px-12 gap-2 bg-[url('/images/fundo-crianca.png')] rounded-md text-white flex-shrink-0">
+          <div className="flex relative flex-col justify-center w-full h-36 px-12 gap-2 bg-[url('/images/fundo-crianca.png')] rounded-md text-white shrink-0">
             <span className="font-bold text-3xl">Learny</span>
             <span>
               Facilitando o processo de aprendizagem para crianças <br />
@@ -174,7 +171,7 @@ export default function Home() {
                   {loading ? (
                     <LoadingComponent />
                   ) : (
-                    <h1 className="font-black bg-gradient-to-r from-[#519ebf] to-[#9c5869] bg-clip-text text-transparent">
+                    <h1 className="font-black bg-linear-to-r from-[#519ebf] to-[#9c5869] bg-clip-text text-transparent">
                       Entrar
                     </h1>
                   )}

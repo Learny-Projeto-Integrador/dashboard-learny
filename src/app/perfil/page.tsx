@@ -128,11 +128,11 @@ export default function Perfil() {
                 onChange={(novaImagem: string | null) => setFoto(novaImagem)}
               />
               <div className="flex flex-col gap-1">
-                <span className="font-bold text-2xl bg-gradient-to-r from-[#d47489] to-[#7dc3ec] bg-clip-text text-transparent">
+                <span className="font-bold text-2xl bg-linear-to-r from-[#d47489] to-[#7dc3ec] bg-clip-text text-transparent">
                   {nomePerfil}
                 </span>
                 <span className="text-[#4c4c4c]">{"You're a"}</span>
-                <span className="font-bold text-lg bg-gradient-to-r from-[#d47489] to-[#7dc3ec] bg-clip-text text-transparent">
+                <span className="font-bold text-lg bg-linear-to-r from-[#d47489] to-[#7dc3ec] bg-clip-text text-transparent">
                   SUPER PARENT
                 </span>
               </div>

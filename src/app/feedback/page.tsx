@@ -23,7 +23,7 @@ const ScoreComponent = ({color, label, value, icon}: ScoreComponentProps) => {
         style={{color: color}}
       >{label}</span>
       <span className="font-bold text-sm">{value}</span>
-      <div className="bg-white rounded-full p-0.5 absolute right-[-10px] top-[-10px]">
+      <div className="bg-white rounded-full p-0.5 absolute -right-2.5 -top-2.5">
         <Image
           src={`/icons/${icon}`}
           alt="Relogio"
@@ -102,7 +102,7 @@ export default function Feedback() {
       <main className="flex-1 flex flex-col bg-white py-6 text-zinc-800 font-montserrat">
         <div className="flex flex-col flex-1 px-14 gap-3 overflow-hidden">
           {/* Início */}
-          <div className="flex relative flex-col mb-2 w-1/3 gap-1 rounded-md text-[#4c4c4c] flex-shrink-0">
+          <div className="flex relative flex-col mb-2 w-1/3 gap-1 rounded-md text-[#4c4c4c] shrink-0">
             <span className="text-sm">Dashboard de:</span>
             <span className="font-bold text-xl">
               {nomeCrianca}

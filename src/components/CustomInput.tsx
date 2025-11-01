@@ -34,7 +34,7 @@ export default function CustomInput({
             ? "bg-[rgba(255,255,255,0.3)]"
             : selected
             ? "border-2 border-[#4c4c4c]"
-            : "border-1 border-zinc-200 rounded-md shadow-[0_0_4px_rgba(150,150,150,0.3)]"
+            : "border border-zinc-200 rounded-md shadow-[0_0_4px_rgba(150,150,150,0.3)]"
         }
       `}
       onClick={onClick} // 🔹 aqui

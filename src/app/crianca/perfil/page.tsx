@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 
 import BarraXP from "@/components/BarraXP";
@@ -30,6 +31,7 @@ export default function Perfil() {
   const [selectedInput, setSelectedInput] = useState<string | null>(null);
   const [modalAberto, setModalAberto] = useState(false);
   const [editando, setEditando] = useState(false);
+  const [erroFetch, setErroFetch] = useState(false)
 
   const handleEdit = async () => {
     if (!usuario || !nome) {
@@ -125,7 +127,7 @@ export default function Perfil() {
   };
 
   useEffect(() => {
-    if (!id) return;
+    if (!id || erroFetch) return;
 
     const fetchFilho = async () => {
       const result = await request({
@@ -142,6 +144,7 @@ export default function Perfil() {
         setRanking(result.ranking);
       } else {
         if (result.status === 404) return
+        setErroFetch(true);
         showAlert({
           icon: "/icons/erro.png",
           title: "Erro ao buscar filho!",
@@ -151,11 +154,11 @@ export default function Perfil() {
     };
 
     fetchFilho();
-  }, [id, showAlert, request]); // build não reclama e não cria loop
+  }, [id, showAlert, erroFetch]);
 
   const SwitchRanking = () => {
     return (
-      <div className="flex items-center w-full h-14 rounded-full bg-gradient-to-r from-[#8f6579] to-[#519ebf] shadow-sm p-1">
+      <div className="flex items-center w-full h-14 rounded-full bg-linear-to-r from-[#8f6579] to-[#519ebf] shadow-sm p-1">
         <button
           className={`flex ${
             ranking
@@ -216,7 +219,7 @@ export default function Perfil() {
                 onChange={(novaImagem: string | null) => setFoto(novaImagem)}
               />
               <div className="flex flex-col gap-1">
-                <span className="font-bold text-2xl bg-gradient-to-r from-[#d47489] to-[#7dc3ec] bg-clip-text text-transparent">
+                <span className="font-bold text-2xl bg-linear-to-r from-[#d47489] to-[#7dc3ec] bg-clip-text text-transparent">
                   {nomePerfil}
                 </span>
                 <span className="text-[#4c4c4c]">Lv. <span className="font-bold text-lg">100</span></span>
@@ -319,7 +322,7 @@ export default function Perfil() {
             <div className="flex flex-col w-full rounded-2xl px-6 py-12 mt-12 gap-4 items-center justify-center bg-white shadow-[0_0_6px_rgba(150,150,150,0.6)]">
               <div className="flex w-4/5 gap-4 items-center mb-6">
                 <div className="w-10 h-10 bg-[url('/icons/acessibilidade.png')] bg-contain bg-no-repeat" />
-                <span className="font-bold bg-gradient-to-r from-[#8f6579] to-[#519ebf] bg-clip-text text-transparent">
+                <span className="font-bold bg-linear-to-r from-[#8f6579] to-[#519ebf] bg-clip-text text-transparent">
                   Acessibilidade
                 </span>
               </div>

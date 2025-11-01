@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -9,9 +10,10 @@ import { useCustomAlert } from "@/contexts/AlertContext";
 import { useApi } from "@/hooks/useApi";
 
 type Props = {
-  onClose: () => void,
-  toggleButtonRef: React.RefObject<HTMLButtonElement | null>
-}
+  modalOpen: boolean;
+  onClose: () => void;
+  toggleButtonRef: React.RefObject<HTMLButtonElement | null>;
+};
 
 type Filho = {
   _id: string;
@@ -34,7 +36,11 @@ const LoadingComponent = () => {
   );
 };
 
-export default function ContainerFilhos({ onClose, toggleButtonRef }: Props) {
+export default function ContainerFilhos({
+  modalOpen,
+  onClose,
+  toggleButtonRef,
+}: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const { showAlert } = useCustomAlert();
@@ -42,6 +48,7 @@ export default function ContainerFilhos({ onClose, toggleButtonRef }: Props) {
   const { setChild } = useChild();
   const [filhos, setFilhos] = useState<Filho[]>([]);
   const [filhoSelecionado, setFilhoSelecionado] = useState<Filho | null>(null);
+  const [erroFetch, setErroFetch] = useState(false);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -89,16 +96,17 @@ export default function ContainerFilhos({ onClose, toggleButtonRef }: Props) {
   };
 
   useEffect(() => {
+    if (erroFetch) return;
     const carregarFilhos = async () => {
       const result = await request({
         endpoint: "/api/criancas",
         method: "GET",
       });
-
       if (result && !result.error) {
         setFilhos(result);
       } else {
-        if (result.status === 404) return;
+        if (result.status === 404 || result.status === 401) return;
+        setErroFetch(true);
         showAlert({
           icon: "/icons/erro.png",
           title: "Erro ao carregar filhos!",
@@ -106,17 +114,16 @@ export default function ContainerFilhos({ onClose, toggleButtonRef }: Props) {
         });
       }
     };
-
     const carregarFilhoSelecionado = async () => {
       const result = await request({
         endpoint: "/api/filhoSelecionado",
         method: "GET",
       });
-
       if (result && !result.error) {
         setFilhoSelecionado(result);
       } else {
-        if (result.status === 404) return;
+        if (result.status === 404 || result.status === 401) return;
+        setErroFetch(true);
         showAlert({
           icon: "/icons/erro.png",
           title: "Erro ao carregar filho selecionado!",
@@ -125,16 +132,15 @@ export default function ContainerFilhos({ onClose, toggleButtonRef }: Props) {
         });
       }
     };
-
     carregarFilhos();
     carregarFilhoSelecionado();
-  }, [request, showAlert]);
+  }, [modalOpen, erroFetch]);
 
   return (
     <div
       ref={containerRef}
       onClick={(e) => e.stopPropagation()}
-      className="flex flex-col items-center justify-center absolute left-56 w-80 top-28 min-h-28 rounded-2xl p-[2px] bg-white shadow-[0_0_12px_rgba(150,150,150,0.7)] z-50"
+      className="flex flex-col items-center justify-center absolute left-56 w-80 top-28 min-h-28 rounded-2xl p-0.5 bg-white shadow-[0_0_12px_rgba(150,150,150,0.7)] z-50"
     >
       {loading ? (
         <LoadingComponent />

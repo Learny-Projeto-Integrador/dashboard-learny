@@ -43,7 +43,7 @@ const LinhaProgresso = ({ step }: LinhaProgressoProps) => {
   ];
 
   return (
-    <div className="flex relative flex-col justify-center items w-full h-28 px-12 gap-2 bg-[#4c4c4c] rounded-md text-white flex-shrink-0">
+    <div className="flex relative flex-col justify-center items w-full h-28 px-12 gap-2 bg-[#4c4c4c] rounded-md text-white shrink-0">
       <Image
         src="/images/logo-com-contorno.png"
         alt="Criança"
@@ -157,8 +157,6 @@ export default function Cadastro() {
       method: "POST",
       body: body,
     })
-
-    console.log(result)
 
     if (result && !result.error) {
       if (rotaCadastro == "/api/criancas") {

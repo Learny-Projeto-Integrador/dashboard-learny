@@ -58,6 +58,7 @@ export function useApi<T = any>(): UseApiReturn<T> {
 
       if (res.status === 401) {
         showAlert({
+          id: "sessao-expirada",
           icon: "/icons/erro.png",
           title: "Sessão expirada!",
           message: "Sua sessão expirou. Efetuando redirecionamento para login.",
